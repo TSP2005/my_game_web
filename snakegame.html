@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link rel="stylesheet" href="stylesnake.css">
+</head>
+<body>
+    <div class="info">
+        <h1>Snake Game</h1>
+        <p>Score: <span id="score">0</span> | High Score: <span id="high-score">0</span></p>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let snake = [];
+        let snakeLength = 5;
+        let apple = { x: 0, y: 0 };
+        let xVelocity = 0;
+        let yVelocity = 0;
+        let score = 0;
+        let highScore = 0;
+        let changingDirection = false;
+
+        function resetGame() {
+            snake = [];
+            for (let i = snakeLength - 1; i >= 0; i--) {
+                snake.push({ x: i, y: 0 });
+            }
+            xVelocity = 0;
+            yVelocity = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            placeApple();
+        }
+
+        function placeApple() {
+            do {
+                apple.x = Math.floor(Math.random() * tileCount);
+                apple.y = Math.floor(Math.random() * tileCount);
+            } while (snake.some(segment => segment.x === apple.x && segment.y === apple.y));
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+            ctx.fillStyle = 'green';
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize, gridSize);
+            }
+
+            // Draw apple
+            ctx.fillStyle = 'red';
+            ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize, gridSize);
+
+            moveSnake();
+            checkCollision();
+            changingDirection = false;
+        }
+
+        function moveSnake() {
+            const head = { x: snake[0].x + xVelocity, y: snake[0].y + yVelocity };
+            snake.unshift(head);
+
+            if (head.x === apple.x && head.y === apple.y) {
+                score++;
+                document.getElementById('score').textContent = score;
+                placeApple();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+
+            // Check wall collision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                resetGame();
+            }
+
+            // Check self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    resetGame();
+                }
+            }
+
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('high-score').textContent = highScore;
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (changingDirection) return;
+
+            changingDirection = true;
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (yVelocity === 0) {
+                        xVelocity = 0;
+                        yVelocity = -1;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (yVelocity === 0) {
+                        xVelocity = 0;
+                        yVelocity = 1;
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (xVelocity === 0) {
+                        xVelocity = -1;
+                        yVelocity = 0;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (xVelocity === 0) {
+                        xVelocity = 1;
+                        yVelocity = 0;
+                    }
+                    break;
+            }
+        });
+
+        setInterval(drawGame, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="styletic.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background-color: #00796b;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .site-title {
+            font-size: 2rem;
+            color: #ffeb3b;
+        }
+
+        .main-content {
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px 0;
+            color: #00796b;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background-color: #00796b;
+            color: #ffeb3b;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell:hover {
+            background-color: #004d40;
+        }
+
+        #status {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #00796b;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            background-color: #00796b;
+            color: #ffeb3b;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .popup h2 {
+            margin: 0 0 20px 0;
+            color: #00796b;
+            font-size: 2rem;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            background-color: #00796b;
+            color: #ffeb3b;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .popup button:hover {
+            background-color: #004d40;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-container">
+            <img src="gamelogo.png" alt="Game Website Logo" class="logo">
+            <h1 class="site-title">Tic-Tac-Toe</h1>
+        </div>
+    </div>
+    <div class="main-content">
+        <br><br>
+        <h1>Tic-Tac-Toe</h1>
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <p id="status">Player X's turn</p>
+        <button onclick="resetGame()">Reset Game</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="popup" id="popup">
+        <h2 id="popup-message"></h2>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let isGameActive = true;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function handleCellClick(index) {
+            if (board[index] !== '' || !isGameActive) return;
+
+            board[index] = currentPlayer;
+            document.querySelector(`[data-index='${index}']`).innerText = currentPlayer;
+
+            if (checkWin()) {
+                document.getElementById('status').innerText = `Player ${currentPlayer} Wins!`;
+                showPopup(`Player ${currentPlayer} Wins!`);
+                isGameActive = false;
+            } else if (board.includes('')) {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                document.getElementById('status').innerText = `Player ${currentPlayer}'s turn`;
+            } else {
+                document.getElementById('status').innerText = 'Draw!';
+                showPopup('It\'s a Draw!');
+                isGameActive = false;
+            }
+        }
+
+        function checkWin() {
+            return winningConditions.some(condition => {
+                return condition.every(index => {
+                    return board[index] === currentPlayer;
+                });
+            });
+        }
+
+        function showPopup(message) {
+            document.getElementById('popup-message').innerText = message;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
+        }
+
+        function hidePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            isGameActive = true;
+            currentPlayer = 'X';
+            document.getElementById('status').innerText = `Player X's turn`;
+            document.querySelectorAll('.cell').forEach(cell => cell.innerText = '');
+            hidePopup();
+        }
+
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('click', () => handleCellClick(cell.getAttribute('data-index')));
+        });
+    </script>
+
+</body>
+</html>
